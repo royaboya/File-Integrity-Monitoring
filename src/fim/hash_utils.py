@@ -16,9 +16,6 @@ def generate_hash_sha256(filepath, chunk_size=8192):
             
     return hash.hexdigest()
     
-print(generate_hash_sha256("./test.txt"))
-print(type(generate_hash_sha256("./test.txt"))) # typ string-> store in db as string
-
 
 
 

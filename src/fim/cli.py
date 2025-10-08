@@ -2,17 +2,17 @@ import argparse
 
 import monitor
 
+
 def add_cust_cmd(subparser, name:str, desc:str, handler):
     custom_cmd = subparser.add_parser(name, help=desc)
     custom_cmd.set_defaults(func=handler)
 
 def scan(args):
-    #print("scan command called")
     monitor.scan()
 
 def generate_baseline(args):
-    print("generate baseline called")
-    # monitor.generate_new_baseline()
+    
+    monitor.generate_new_baseline()
 
 
 def build_parser():
@@ -26,7 +26,7 @@ def build_parser():
     return parser
     
 
-def main():
+def run():
     parser = build_parser()
     args = parser.parse_args()
     
@@ -34,7 +34,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    run()
 
 
 # Example cmds
