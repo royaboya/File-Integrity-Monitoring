@@ -9,11 +9,11 @@ def add_cust_cmd(subparser, name:str, desc:str, handler):
 
 def scan(args):
     monitor.scan()
-
-def generate_baseline(args):
+    # add display
     
+def generate_baseline(args):
     monitor.generate_new_baseline()
-
+    # add display
 
 def build_parser():
     
@@ -26,7 +26,7 @@ def build_parser():
     return parser
     
 
-def run():
+def run(logger=None):
     parser = build_parser()
     args = parser.parse_args()
     
