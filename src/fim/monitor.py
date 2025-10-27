@@ -15,31 +15,36 @@ def load_path_config():
     paths_to_scan = config.get("system_paths_to_scan", [])
     return paths_to_scan
 
-
 # scans entire config and looks for any anomalies
-# needs to handle file not found exceptions
-# what if hashes arent able to be made?
-# how will those exceptions be handled
 def scan():
     print("Scanning directories for changes") # move this to cli.py
     
-    config = load_path_config() # config func from db or a config.py module
-    for path in config:
+    current_config = load_path_config() 
+    for path in current_config:
         converted_path = Path(path)
         for p in converted_path.iterdir():
             if p.is_file():
-                hash = hash_filepath(p)
-                baseline = "get baseline func" # baseline func from db? or config.py
+                hash = hash_filepath(p) # update
+                baseline = "get baseline func" #db.getbaseline() 
                 if hash != baseline:
+                    # add to unmatched_baselines?
+                    # or build running list in alerts
                     alerts.raise_alert("offending message")
                 logger.debug(f"{str(p)} : {hash}\n")
             else:
                 continue
     
 def generate_new_baseline():
-    # hash = get hash
-    # db.update_entry(filepath, hash)
-    pass
+    # db.clear_baseline()
+    
+    current_config = load_path_config()
+   
+    for path in current_config:
+        converted_path = Path(path)
+        for p in converted_path.iterdir():
+            if p.is_file():
+                hash = hash_filepath(p)
+                # db.add_entry(hash, p)
 
  
 # remove this function
