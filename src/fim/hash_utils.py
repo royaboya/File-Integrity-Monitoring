@@ -17,6 +17,14 @@ def generate_hash_sha256(filepath, chunk_size=8192):
             
     return hash.hexdigest()
 
+# use hmac?
+def compare_hashes(h1, h2):
+    pass
+
+
+def verify_file_integrity(filepath, expected_hash, algorithm="sha256"):
+    hash = generate_hash_sha256(filepath)
+    return hash == expected_hash
 
 
 

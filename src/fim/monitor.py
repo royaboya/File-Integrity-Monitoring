@@ -1,10 +1,12 @@
 from pathlib import Path
+import yaml
+
+import alerts
 import db
 import hash_utils
-import yaml
 from logger import logger
-import json
 
+unmatched_baselines = []
 
 def load_path_config():
     with open("../../config.yaml","rb") as f:
@@ -14,38 +16,35 @@ def load_path_config():
     return paths_to_scan
 
 
-
+# scans entire config and looks for any anomalies
+# needs to handle file not found exceptions
+# what if hashes arent able to be made?
+# how will those exceptions be handled
 def scan():
-
-    print("Scanning directories for changes")
+    print("Scanning directories for changes") # move this to cli.py
     
-    
-    config = load_path_config()
-    with open("../../logs/test.log", "w") as logfile:    
-        for path in config:
-            converted_path = Path(path)
-            for p in converted_path.iterdir():
-                if p.is_file():
-                    hash = hash_filepath(p)
-                    # check hash here with baseline
-                    logfile.write(f"{str(p)} : {hash}\n")
-                    logger.debug(f"{str(p)} : {hash}\n")
-                else:
-                    continue
-            
-    #     run hash on file
-    #     if hash does not match database entry (path:hash)
-    #           # raise alert
-    #     else:
-    #          # continue
+    config = load_path_config() # config func from db or a config.py module
+    for path in config:
+        converted_path = Path(path)
+        for p in converted_path.iterdir():
+            if p.is_file():
+                hash = hash_filepath(p)
+                baseline = "get baseline func" # baseline func from db? or config.py
+                if hash != baseline:
+                    alerts.raise_alert("offending message")
+                logger.debug(f"{str(p)} : {hash}\n")
+            else:
+                continue
     
 def generate_new_baseline():
+    # hash = get hash
+    # db.update_entry(filepath, hash)
     pass
 
  
-# store it too?
+# remove this function
 def hash_filepath(path):
-    # log hashing filpath
+    # log hashing filpath?
     
     hash = hash_utils.generate_hash_sha256(filepath=path)
     

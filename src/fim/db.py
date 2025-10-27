@@ -1,2 +1,2 @@
 # need to define what backend to store file hashes on
-# create wazuh integration too?
+# do splunk integration as it does not have a built in FIM
