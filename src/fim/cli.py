@@ -12,8 +12,8 @@ def add_flag(parser, flag_name, desc=""):
 
 def scan(args):
     print("Scanning Directories from config")
+    # display directories scanned
     monitor.scan()
-    # add display
     
 def generate_baseline(args):
     print("Generating a new baseline")
@@ -25,7 +25,7 @@ def build_parser():
     parser = argparse.ArgumentParser(prog="fim", description="FIM system")
     subparser = parser.add_subparsers(dest="command", required=True)
     
-    add_flag(parser, "--report", "Generate a Report Summary after the scan")
+    add_flag(parser, "r", "Generate a Report Summary after the scan")
 
     
     add_cust_cmd(subparser, "scan", "Scans the directories in config and compares the values stored in the baseline", scan)
@@ -38,7 +38,8 @@ def run(logger=None):
     parser = build_parser()
     args = parser.parse_args()
     
-    if args.report:
+    if args.r:
+        # monitor.generate_report()?
         pass
     
     args.func(args)    
