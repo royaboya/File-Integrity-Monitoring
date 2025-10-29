@@ -8,8 +8,7 @@ from logger import logger
 
 unmatched_baselines = []
 
-#TODO: add with open contexts to reduce close calls
-
+# migrate to config.py in the future
 def load_path_config():
     with open("../../config.yaml","rb") as f:
         config = yaml.safe_load(f)
@@ -30,39 +29,49 @@ def scan():
             if p.is_file():
                 hash = hash_filepath(p) # update
                 try:
-                    baseline = loaded_baselines[p] # remove this line and get from memory
+                    baseline = loaded_baselines[p]
                 except:
+                    logger.error(f"Unable to hash {str(p)}")
                     baseline = "UNKNOWN"
                     
                 if hash != baseline:
                     # add to unmatched_baselines?
                     # or build running list in alerts
-                    print("alert")
                     alerts.raise_alert("offending message")
-                logger.debug(f"{str(p)} : {hash}\n")
+                else:
+                    print("matches, continuing")
             else:
-                print("matches, continuing")
+                logger.info(f"Not a directory?: {str(p)}")
                 continue
+    # alerts.build_alert() # send out
     
 def generate_new_baseline():
     db.clear_baseline()
     
     current_config = load_path_config()
+    running_records = []
+   
    
     for path in current_config:
+        # load query for one folder root path at at time
         converted_path = Path(path)
         for p in converted_path.iterdir():
             if p.is_file():
                 hash = hash_filepath(p)
-                print(hash)
-                
-                db.add_entry(str(p), hash)
-
+                running_records.append((str(p), hash))
+                db.add_bulk_entries(running_records)
+        running_records.clear()
  
 # remove this function
 def hash_filepath(path):
-    # log hashing filpath?
+    return hash_utils.generate_hash_sha256(filepath=path)
     
-    hash = hash_utils.generate_hash_sha256(filepath=path)
+
+# ret t/f
+def verify_baseline_integrity():
+    # need to create db export dump to hash 
+    pass    
     
-    return hash
+
+def validate_config():
+    pass

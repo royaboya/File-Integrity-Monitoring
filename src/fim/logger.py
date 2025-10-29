@@ -1,11 +1,12 @@
 import logging
 
-def initialize_logger(filename, text_encoding, level):
+def initialize_logger(filename, text_encoding, level, format):
         
     logging.basicConfig(
         filename=filename,
         encoding=text_encoding,
-        level=level
+        level=level,
+        format=format
     )
    
     logging_inst = logging.getLogger(__name__)

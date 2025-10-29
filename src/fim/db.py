@@ -1,14 +1,24 @@
+from contextlib import contextmanager
 import psycopg2 as postgres
 from psycopg2 import sql
-
+from config import HOST, PGSQL_PORT, PGSQL_PW, PGSQL_USER
 
 def get_connection():
     return postgres.connect(
-        host="localhost",
-        port=5432,
-        user="postgres",
-        password="FreezeStainCool4"
+        host=HOST,
+        port=PGSQL_PORT,
+        user=PGSQL_USER,
+        password=PGSQL_PW
     )
+
+
+# context manager to handle creating and closing connections
+@contextmanager
+def db_cursor_conn():
+    with get_connection() as con:
+        with con.cursor() as cur:
+            yield cur
+
     
 def create_and_verify_db():
     
@@ -70,6 +80,7 @@ def get_all_baseline_values():
     
     con = get_connection()
     cursor = con.cursor()
+    
     cursor.execute(sql.SQL("SELECT filepath, filehash FROM file_hashes_table"))
     
     for filepath, filehash in cursor.fetchall():
@@ -81,7 +92,6 @@ def get_all_baseline_values():
 
 
 # clears db, should require second level of auth
-# for some reason works in cli but not here
 def clear_baseline():
     con = get_connection()
     cursor = con.cursor()
@@ -100,11 +110,27 @@ def add_entry(file_path:str, file_hash:str):
     cursor.execute("""
     INSERT INTO file_hashes_table (filepath, filehash)
     VALUES (%s, %s);
-""", (str(file_path), file_hash))
+    """, (str(file_path), file_hash))
     
     con.commit()
+    con.clos()
+    cursor.close()
     
+# lst of tuples (size 2 each)
+def add_bulk_entries(file_hash_records):
+    con = get_connection()
+    cursor = con.cursor()
     
+    cursor.executemany("""
+                   INSERT INTO file_hashes_table (filepath, filehash) VALUES (%s, %s) ON CONFLICT (filepath) DO UPDATE SET filehash = EXCLUDED.filehash
+                   """, file_hash_records)
+    
+    con.commit()
+    cursor.close()
+    con.close()
+    
+
+# edit values for new baselines 
 def update_entry(filepath, new_filehash):
     pass
     
