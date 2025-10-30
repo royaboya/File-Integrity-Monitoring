@@ -11,7 +11,6 @@ def get_connection():
         password=PGSQL_PW
     )
 
-
 # context manager to handle creating and closing connections
 @contextmanager
 def db_cursor_conn():
@@ -19,9 +18,8 @@ def db_cursor_conn():
         with con.cursor() as cur:
             yield cur
 
-    
+# refactor so table name can be decided
 def create_and_verify_db():
-    
     con = get_connection()
     con.autocommit = True
     cursor = con.cursor()
@@ -93,41 +91,26 @@ def get_all_baseline_values():
 
 # clears db, should require second level of auth
 def clear_baseline():
-    con = get_connection()
-    cursor = con.cursor()
-    cursor.execute("TRUNCATE TABLE file_hashes_table;")
-    con.commit()
-    
-    cursor.close()
-    con.close()
-    
+    with db_cursor_conn() as cur:
+        cur.execute("TRUNCATE TABLE file_hashes_table;")
+        cur.connection.commit()    
 
 def add_entry(file_path:str, file_hash:str):
     # verify file_path is of type str
-    con = get_connection()
-    cursor = con.cursor()
+    with db_cursor_conn() as cur:
+        cur.execute("""
+            INSERT INTO file_hashes_table (filepath, filehash)
+            VALUES (%s, %s);
+            """, (str(file_path), file_hash))
+        cur.connection.commit()
     
-    cursor.execute("""
-    INSERT INTO file_hashes_table (filepath, filehash)
-    VALUES (%s, %s);
-    """, (str(file_path), file_hash))
-    
-    con.commit()
-    con.clos()
-    cursor.close()
-    
-# lst of tuples (size 2 each)
 def add_bulk_entries(file_hash_records):
-    con = get_connection()
-    cursor = con.cursor()
-    
-    cursor.executemany("""
-                   INSERT INTO file_hashes_table (filepath, filehash) VALUES (%s, %s) ON CONFLICT (filepath) DO UPDATE SET filehash = EXCLUDED.filehash
-                   """, file_hash_records)
-    
-    con.commit()
-    cursor.close()
-    con.close()
+    with db_cursor_conn() as cur:
+        cur.executemany("""
+                INSERT INTO file_hashes_table (filepath, filehash) 
+                VALUES (%s, %s) ON CONFLICT (filepath) DO UPDATE SET filehash = EXCLUDED.filehash
+                """, file_hash_records)
+        cur.connection.commit()
     
 
 # edit values for new baselines 

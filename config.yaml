@@ -1,0 +1,6 @@
+system_paths_to_scan:
+- "C:/Windows/System32"
+- "C:/Windows"
+
+
+#user_defined_paths:
