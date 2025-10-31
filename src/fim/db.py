@@ -3,6 +3,8 @@ import psycopg2 as postgres
 from psycopg2 import sql
 from config import HOST, PGSQL_PORT, PGSQL_PW, PGSQL_USER
 
+# need to add str checking for p
+
 def get_connection():
     return postgres.connect(
         host=HOST,
@@ -17,53 +19,41 @@ def db_cursor_conn():
     with get_connection() as con:
         with con.cursor() as cur:
             yield cur
-
-# refactor so table name can be decided
-def create_and_verify_db():
-    con = get_connection()
-    con.autocommit = True
-    cursor = con.cursor()
     
-    db_name = "file hashes"
-    cursor.execute(sql.SQL("SELECT 1 FROM pg_database WHERE datname = %s"), [db_name])
-    exists = cursor.fetchone()
 
-    if not exists:
-        cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(db_name)))
-    else:
-        print("database not made")
+def create_and_verify_db():
+    with db_cursor_conn() as cur:
+        cur.connection.autocommit = True
+        db = "file hashes"
+        cur.execute(sql.SQL("SELECT 1 FROM pg_database WHERE datname = %s"), [db])
         
-    cursor.close()
-    con.close()
+        exists = cur.fetchone()
+        
+        if not exists:
+            cur.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(db)))
+        else:
+            print("DB not made") # change this
+        
     
 
 def create_and_verify_table():
-    con = get_connection()
-    cursor = con.cursor()
-    
-    cursor.execute("""
-            CREATE TABLE IF NOT EXISTS file_hashes_table(
-                id SERIAL PRIMARY KEY,
-                filepath TEXT UNIQUE NOT NULL,
-                filehash TEXT NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-            """)
-    
-    cursor.close()
-    con.close()
+    with db_cursor_conn as cur:
+        cur.execute("""
+                CREATE TABLE IF NOT EXISTS file_hashes_table(
+                    id SERIAL PRIMARY KEY,
+                    filepath TEXT UNIQUE NOT NULL,
+                    filehash TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                """)
+        cur.connecton.commit()
 
 # returns filepath hash
 def get_baseline(filepath:str):
     # validate that it's str first, 
-    con = get_connection()
-    cursor = con.cursor()
-    cursor.execute(sql.SQL("SELECT * FROM file_hashes_table WHERE filepath = %s"),  [str(filepath)])
-    
-    value = cursor.fetchone()
-    
-    con.close()
-    cursor.close()
+    with db_cursor_conn as cur:
+        cur.execute(sql.SQL("SELECT * FROM file_hashes_table WHERE filepath = %s"),  [str(filepath)])
+        value = cur.fetchone()
     
     if value:
         return value
@@ -75,17 +65,12 @@ def get_baseline(filepath:str):
 # returns dict
 def get_all_baseline_values():
     loaded_baselines = {}
+    with db_cursor_conn as cur:
+        cur.execute(sql.SQL("SELECT filepath, filehash FROM file_hashes_table"))
     
-    con = get_connection()
-    cursor = con.cursor()
-    
-    cursor.execute(sql.SQL("SELECT filepath, filehash FROM file_hashes_table"))
-    
-    for filepath, filehash in cursor.fetchall():
-        loaded_baselines[filepath] = filehash    
-    
-    con.close()
-    cursor.close()
+        for filepath, filehash in cur.fetchall():
+            loaded_baselines[filepath] = filehash    
+
     return loaded_baselines
 
 
@@ -115,7 +100,12 @@ def add_bulk_entries(file_hash_records):
 
 # edit values for new baselines 
 def update_entry(filepath, new_filehash):
-    pass
+    """
+    UPDATE file_hashes_table
+    SET filehash = value
+    WHERE filepath = %s
+    """
+    return
     
 
 if __name__ == "__main__":
