@@ -1,7 +1,7 @@
 import argparse
 import monitor
 
-
+# Creates a subcommand
 def add_cust_cmd(subparser, name:str, desc:str, handler):
     custom_cmd = subparser.add_parser(name, help=desc)
     custom_cmd.set_defaults(func=handler)
@@ -18,7 +18,6 @@ def scan(args):
 def generate_baseline(args):
     print("Generating a new baseline")
     monitor.generate_new_baseline()
-    # add display
 
 def build_parser():
     
@@ -27,7 +26,6 @@ def build_parser():
     
     add_flag(parser, "r", "Generate a Report Summary after the scan")
 
-    
     add_cust_cmd(subparser, "scan", "Scans the directories in config and compares the values stored in the baseline", scan)
     add_cust_cmd(subparser, "generate-baseline", "Creates a new baseline configuration for the files", generate_baseline)
         
@@ -39,8 +37,7 @@ def run(logger=None):
     args = parser.parse_args()
     
     if args.r:
-        # monitor.generate_report()?
-        pass
+        monitor.generate_report()
     
     args.func(args)    
 

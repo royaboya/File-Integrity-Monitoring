@@ -98,14 +98,16 @@ def add_bulk_entries(file_hash_records):
         cur.connection.commit()
     
 
-# edit values for new baselines 
+# add on-conflict handling
 def update_entry(filepath, new_filehash):
-    """
-    UPDATE file_hashes_table
-    SET filehash = value
-    WHERE filepath = %s
-    """
-    return
+    with db_cursor_conn() as cur:
+        cur.execute(
+            """
+            UPDATE file_hashes_table
+            SET filehash = %s
+            WHERE filepath = %s
+            """, (new_filehash, filepath))
+        cur.connection.commit()
     
 
 if __name__ == "__main__":
