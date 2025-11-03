@@ -37,7 +37,7 @@ def create_and_verify_db():
     
 
 def create_and_verify_table():
-    with db_cursor_conn as cur:
+    with db_cursor_conn() as cur:
         cur.execute("""
                 CREATE TABLE IF NOT EXISTS file_hashes_table(
                     id SERIAL PRIMARY KEY,
@@ -51,7 +51,7 @@ def create_and_verify_table():
 # returns filepath hash
 def get_baseline(filepath:str):
     # validate that it's str first, 
-    with db_cursor_conn as cur:
+    with db_cursor_conn() as cur:
         cur.execute(sql.SQL("SELECT * FROM file_hashes_table WHERE filepath = %s"),  [str(filepath)])
         value = cur.fetchone()
     
@@ -65,7 +65,7 @@ def get_baseline(filepath:str):
 # returns dict
 def get_all_baseline_values():
     loaded_baselines = {}
-    with db_cursor_conn as cur:
+    with db_cursor_conn() as cur:
         cur.execute(sql.SQL("SELECT filepath, filehash FROM file_hashes_table"))
     
         for filepath, filehash in cur.fetchall():
