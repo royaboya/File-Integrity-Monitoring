@@ -1,20 +1,11 @@
 import os
 from pathlib import Path
-import yaml
 
 import alerts
 import db
 import hash_utils
 from logger import logger
-
-
-# migrate to config.py in the future
-def load_path_config():
-    with open("../../config.yaml","rb") as f:
-        config = yaml.safe_load(f)
-    
-    paths_to_scan = config.get("system_paths_to_scan", [])
-    return paths_to_scan
+from config import load_path_config
 
 # scans entire config and looks for any anomalies
 def scan():    
@@ -33,6 +24,7 @@ def scan():
                 except Exception as e:
                     print(f"ERROR: {e}")
                     logger.error(f"Unable to hash {str(p)}")
+                    alerts.inc_err_count()
                     baseline = "UNKNOWN"
                     
                 if hash != baseline:
@@ -43,9 +35,7 @@ def scan():
             else:
                 logger.info(f"Not a directory?: {str(p)}")
                 continue
-    print("sending email")
     alerts.send_email_alert("[ALERT] Filepaths modified")
-    # alerts.build_alert() # send out
     
 def generate_new_baseline():
     db.clear_baseline()
@@ -77,21 +67,17 @@ def validate_config():
             return False
     return True
 
-def summarize_scan_results():
-    pass
-
-
 def generate_report():
-    pass
-
-
-
+    # create from alerts, shouldve had a tracking module
+    result = alerts.create_alert_report()
+    print(result)
+    
+    
 # ret t/f
 def verify_baseline_integrity():
     # need to create db export dump to hash 
     pass
     
-
 
 if __name__ == "__main__":
     db.clear_baseline()
