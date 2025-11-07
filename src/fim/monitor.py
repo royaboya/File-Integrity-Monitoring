@@ -9,7 +9,9 @@ from logger import logger
 from config import load_path_config
 
 # scans entire config and looks for any anomalies
-def scan():    
+def scan(deep_scan=False):    
+    if deep_scan:
+        print("DEEP SCAN ENABLED")
     
     hostname = gethostname()
     current_config = load_path_config() 
@@ -63,7 +65,7 @@ def validate_config():
     
     for path in config:
         if not(os.path.exists(path)):
-            # logger.log(path does not exist)
+            logger.error(f"{path} could not be verified")
             return False
         
     return True

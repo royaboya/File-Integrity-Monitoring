@@ -5,14 +5,20 @@ import monitor
 def add_cust_cmd(subparser, name:str, desc:str, handler):
     custom_cmd = subparser.add_parser(name, help=desc)
     custom_cmd.set_defaults(func=handler)
+    return custom_cmd
+
+def add_cust_cmd_flag(subparser, name, alias, action, desc):
+    subparser.add_argument(name, alias, action=action, help=desc)
 
 def add_flag(parser, flag_name, desc=""):
     parser.add_argument(f"-{flag_name}", action="store_true", help=desc)
 
-
 def scan(args):
     print("Scanning Directories from config")
-    # display directories scanned
+    # need to display directories scanned
+    if args.deep:
+        monitor.scan(True)
+    
     monitor.scan()
     
 def generate_baseline(args):
@@ -26,9 +32,11 @@ def build_parser():
     
     add_flag(parser, "r", "Generate a Report Summary after the scan")
 
-    add_cust_cmd(subparser, "scan", "Scans the directories in config and compares the values stored in the baseline", scan)
-    add_cust_cmd(subparser, "generate-baseline", "Creates a new baseline configuration for the files", generate_baseline)
-        
+    scan_cmd = add_cust_cmd(subparser, "scan", "Scans the directories in config and compares the values stored in the baseline", scan)
+    generate_cmd = add_cust_cmd(subparser, "generate-baseline", "Creates a new baseline configuration for the files", generate_baseline)
+    
+    add_cust_cmd_flag(scan_cmd, "-d", "--deep", action="store_true", desc="Enable deep reursive scanning")
+    
     return parser
     
 
@@ -40,7 +48,6 @@ def run(logger=None):
     if args.r:
         report = monitor.generate_report()
         print(report)
-
 
 if __name__ == "__main__":
     run()
