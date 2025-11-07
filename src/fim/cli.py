@@ -35,11 +35,11 @@ def build_parser():
 def run(logger=None):
     parser = build_parser()
     args = parser.parse_args()
+    args.func(args)    
     
     if args.r:
-        monitor.generate_report()
-    
-    args.func(args)    
+        report = monitor.generate_report()
+        print(report)
 
 
 if __name__ == "__main__":
